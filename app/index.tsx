@@ -5,8 +5,6 @@ import { ActivityIndicator, View } from 'react-native';
 import { supabase } from '../lib/supabase';
 
 export default function indexPage() {
-
-
     const [session, setSession] = useState<Session | null>(null)
     const [loading, setLoading] = useState(true)
     useEffect(() => {
