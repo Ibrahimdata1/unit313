@@ -2,6 +2,8 @@ import { Box, Button, ButtonText, Center, FormControl, Heading, Input, InputFiel
 import { useRouter } from 'expo-router'
 import { Lock, Mail } from 'lucide-react-native'
 import { useState } from 'react'
+import { Keyboard, TouchableWithoutFeedback } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { supabase } from '../../lib/supabase'
 export default function LoginScreen() {
     const [email, setEmail] = useState('')
@@ -9,6 +11,7 @@ export default function LoginScreen() {
     const [loading, setLoading] = useState(false)
     const router = useRouter()
     const toast = useToast()
+    const space = useSafeAreaInsets()
     const handleLogin = async () => {
         setLoading(true)
         const { error } = await supabase.auth.signInWithPassword({
@@ -19,7 +22,7 @@ export default function LoginScreen() {
             toast.show({
                 placement: 'top',
                 render: ({ id }) => (
-                    <Toast nativeID={id} action='error' variant='accent'>
+                    <Toast nativeID={id} action='error' variant='accent' style={{marginTop:space.top}}>
                         <VStack space='xs'>
                             <ToastTitle>Login Failed!</ToastTitle>
                             <ToastDescription>{error.message}</ToastDescription>
@@ -33,6 +36,7 @@ export default function LoginScreen() {
         }
     }
     return (
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <Center flex={1} bg='$white' p='$4'>
             <Box maxWidth='$96' width='100%' p='$6' borderRadius='$lg' borderWidth='$1' borderColor='$borderLight200' bg='$backgroundCard'>
                 <VStack space='xl'>
@@ -68,5 +72,6 @@ export default function LoginScreen() {
                 </VStack>
             </Box>
         </Center>
+        </TouchableWithoutFeedback>
     )
 }
