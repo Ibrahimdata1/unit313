@@ -1,11 +1,29 @@
 import { Avatar, AvatarFallbackText, Badge, BadgeText, Box, Button, ButtonText, Heading, HStack, ScrollView, Text, VStack } from "@gluestack-ui/themed";
 import { useRouter } from "expo-router";
 
-// 1. Mock Data (ข้อมูลสมมติ)
+// 1. Mock Data
 const POSTS = [
-  { id: 1, type: 'ลงทุน', title: 'ขยายร้าน Only burgers สาขาพระราม 9', owner: 'Kosit B.', color: '$success600' },
-  { id: 2, type: 'หางาน', title: 'รับสมัคร QA Automation (Playwright)', owner: 'Halal Tech Co.', color: '$info600' },
-  { id: 3, type: 'พาร์ทเนอร์', title: 'หาคนช่วยทำตลาดอินทผลัมออร์แกนิก', owner: 'Mubarak Group', color: '$warning600' },
+  { 
+    id: 1, 
+    type: 'Investment', 
+    title: 'Expanding "Only Burgers" - Rama 9 Branch', 
+    owner: 'Kosit B.', 
+    color: '$success600' 
+  },
+  { 
+    id: 2, 
+    type: 'Hiring', 
+    title: 'QA Automation Engineer (Playwright)', 
+    owner: 'Halal Tech Co.', 
+    color: '$info600' 
+  },
+  { 
+    id: 3, 
+    type: 'Partnership', 
+    title: 'Marketing Partner for Organic Dates', 
+    owner: 'Mubarak Group', 
+    color: '$warning600' 
+  },
 ];
 export default function DashboardScreen(){
     const router = useRouter()
