@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { Avatar, AvatarFallbackText, Badge, BadgeText, Box, Button, ButtonText, Heading, HStack, ScrollView, Text, VStack } from "@gluestack-ui/themed";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 
 // 1. Mock Data
 const POSTS = [
@@ -38,7 +39,15 @@ const fetchUserRole = async()=>{
     return data
 }
 export default function DashboardScreen(){
+    const [role,setRole] = useState<string|null|object>(null)
     const router = useRouter()
+    useEffect(()=>{
+        const getUserRole = async()=>{
+            const userRole =await fetchUserRole()
+        setRole(userRole)
+        }
+        getUserRole()
+    },[])
     return(
         <Box flex={1} bg="$secondary50">
             <Box p='$6' bg="$white" borderBottomWidth={1} borderBottomColor="$secondary200">
