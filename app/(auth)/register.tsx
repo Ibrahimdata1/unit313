@@ -5,6 +5,21 @@ import { Lock, Mail } from 'lucide-react-native'
 import { useState } from 'react'
 import { Keyboard, TouchableWithoutFeedback } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+const toast = useToast()
+const space = useSafeAreaInsets()
+const showToast = (title: string, desc: string, action: 'error' | 'success', direction: 'top' | 'bottom', variant: 'accent') => {
+    toast.show({
+        placement: direction,
+        render: ({ id }) => (
+            <Toast nativeID={id} action={action} variant={variant} style={{ marginTop: space.top }}>
+                <VStack space='xs'>
+                    <ToastTitle>{title}</ToastTitle>
+                    <ToastDescription>{desc}</ToastDescription>
+                </VStack>
+            </Toast>
+        )
+    })
+}
 export default function RegisterScreen() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
@@ -13,84 +28,40 @@ export default function RegisterScreen() {
     const [phone, setPhone] = useState<Number>()
     const [loading, setLoading] = useState(false)
     const [roles, setRoles] = useState(['investor', 'enterprenuer', 'jobseeker'])
-    const toast = useToast()
-    const space = useSafeAreaInsets()
     const router = useRouter()
     const handleRegister = async () => {
         if (password !== confirmPassword) {
-            toast.show({
-                placement: 'top',
-                render: ({ id }) => (
-                    <Toast nativeID={id} action='error' variant='accent' style={{ marginTop: space.top }}>
-                        <VStack space='xs'>
-                            <ToastTitle>Password do not match!</ToastTitle>
-                            <ToastDescription>Please make sure both password are the same</ToastDescription>
-                        </VStack>
-                    </Toast>
-                )
-            })
+            showToast("Password do not match!", "Please make sure both are the same", "error", 'top', 'accent')
             return
         }
         setLoading(true)
-        const { data: { user }, error } = await supabase.auth.signUp({
+        const { data: { user }, error: authError } = await supabase.auth.signUp({
             email,
             password
         })
-        if (error) {
-            toast.show({
-                placement: 'top',
-                render: ({ id }) => (
-                    <Toast nativeID={id} action='error' variant='accent' style={{ marginTop: space.top }}>
-                        <VStack space='xs'>
-                            <ToastTitle>Registeration Failed!</ToastTitle>
-                            <ToastDescription>{error.message}</ToastDescription>
-                        </VStack>
-                    </Toast>
-                )
-
-            })
+        if (authError) {
+            showToast("Registeration Failed!", authError.message, "error", 'top', 'accent')
             setLoading(false)
-        } else {
-            if (user) {
-                const { error } = await supabase.from('profiles').insert([
-                    {
-                        id: user.id,
-                        full_name: name,
-                        is_investor: roles.includes('investor'),
-                        is_jobseeker: roles.includes('jobseeker'),
-                        is_entrepreneur: roles.includes('entrepreneur')
-                    }
-                ])
-                if (error) {
-                    toast.show({
-                        placement: 'top',
-                        render: ({ id }) => (
-                            <Toast nativeID={id} action='error' variant='accent' style={{ marginTop: space.top }}>
-                                <VStack space='xs'>
-                                    <ToastTitle>Registeration Failed!</ToastTitle>
-                                    <ToastDescription>{error.message}</ToastDescription>
-                                </VStack>
-                            </Toast>
-                        )
-                    })
-                }
-                toast.show({
-                    placement: 'top',
-                    render: ({ id }) => (
-                        <Toast nativeID={id} variant='accent' action='success' style={{ marginTop: space.top }}>
-                            <VStack space='xs'>
-                                <ToastTitle>Registeration Success!</ToastTitle>
-                                <ToastDescription>Check your email for the confirmation link</ToastDescription>
-                            </VStack>
-                        </Toast>
-                    )
-                })
-            } else {
-
-            }
-            setLoading(false)
-            router.replace('/login')
+            return
         }
+        if (user) {
+            const { error: errSaveProfiles } = await supabase.from('profiles').insert([
+                {
+                    id: user.id,
+                    full_name: name,
+                    is_investor: roles.includes('investor'),
+                    is_jobseeker: roles.includes('jobseeker'),
+                    is_entrepreneur: roles.includes('entrepreneur')
+                }
+            ])
+            if (errSaveProfiles) {
+                showToast("Registeration Failed!", errSaveProfiles.message, "error", 'top', 'accent')
+            } else {
+                showToast("Registeration Success!", 'Check your email for the confirmation link', "error", 'top', 'accent')
+                router.replace('/login')
+            }
+        }
+        setLoading(false)
     }
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
