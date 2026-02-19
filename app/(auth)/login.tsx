@@ -68,7 +68,7 @@ export default function LoginScreen() {
                         <Button size='lg' variant='solid' action='primary' bg='$black' onPress={handleLogin} isDisabled={loading}>
                             {loading ? (<ButtonText>Loading....</ButtonText>) : (<ButtonText color='$white'>Sign in</ButtonText>)}
                         </Button>
-                        <Button variant='link' onPress={() => router.push('/register' as any)}>
+                        <Button variant='link' onPress={() => router.push('/(auth)/register' as any)}>
                             <ButtonText>Not Registerd Yet?</ButtonText>
                         </Button>
                         <Text size='xs' color='$text400' textAlign='center'>Unit313 one ummah</Text>

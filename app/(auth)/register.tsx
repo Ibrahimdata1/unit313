@@ -104,7 +104,7 @@ export default function RegisterScreen() {
                        <Button variant='solid' onPress={handleRegister} action='primary' bg='$black' isDisabled={loading}>
                             {loading ? <ButtonText>Processing...</ButtonText>:<ButtonText color='$white'>Register</ButtonText>}
                        </Button>
-                       <Button variant='link' onPress={()=>router.replace('/login')}>
+                       <Button variant='link' onPress={()=>router.replace('/(auth)/login')}>
                             <ButtonText size='sm'>Already have an account? Sign In</ButtonText>
                        </Button>
                        <Text size='xs' color='$text400' textAlign='center'>Unit 313 one ummah</Text>
