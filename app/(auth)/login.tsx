@@ -32,7 +32,7 @@ export default function LoginScreen() {
             })
             setLoading(false)
         } else {
-            router.replace('/(tabs)')
+            router.replace('/(tabs)/dashboard' as any)
         }
     }
     return (

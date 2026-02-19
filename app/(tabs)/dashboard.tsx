@@ -1,3 +1,4 @@
+import { supabase } from "@/lib/supabase";
 import { Avatar, AvatarFallbackText, Badge, BadgeText, Box, Button, ButtonText, Heading, HStack, ScrollView, Text, VStack } from "@gluestack-ui/themed";
 import { useRouter } from "expo-router";
 
@@ -25,6 +26,17 @@ const POSTS = [
     color: '$warning600' 
   },
 ];
+const fetchUserRole = async()=>{
+    const {data:{user}} = await supabase.auth.getUser()
+    if (!user) return null;
+    const {data,error} = await supabase.from('profiles').select('is_investor, is_jobseeker, is_entrepreneur').eq('id', user.id)
+    .single();
+    if(error){
+        console.error(error)
+        return null
+    }
+    return data
+}
 export default function DashboardScreen(){
     const router = useRouter()
     return(
