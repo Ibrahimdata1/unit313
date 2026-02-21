@@ -1,60 +1,61 @@
-import { supabase } from "@/lib/supabase";
-import { Avatar, AvatarFallbackText, Badge, BadgeText, Box, Button, ButtonText, Heading, HStack, ScrollView, Text, VStack } from "@gluestack-ui/themed";
+import { fetchContentByRole } from "@/services/fetchContentRole";
+import { fetchUserRole } from "@/services/fetchUserRole";
+import { UserRole } from "@/types/database";
+import { Avatar, AvatarFallbackText, Badge, BadgeText, Box, Button, ButtonText, Center, Heading, HStack, ScrollView, Spinner, Text, VStack } from "@gluestack-ui/themed";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 
 // 1. Mock Data
 const POSTS = [
-  { 
-    id: 1, 
-    type: 'Investment', 
-    title: 'Expanding "Only Burgers" - Rama 9 Branch', 
-    owner: 'Kosit B.', 
-    color: '$success600' 
-  },
-  { 
-    id: 2, 
-    type: 'Hiring', 
-    title: 'QA Automation Engineer (Playwright)', 
-    owner: 'Halal Tech Co.', 
-    color: '$info600' 
-  },
-  { 
-    id: 3, 
-    type: 'Partnership', 
-    title: 'Marketing Partner for Organic Dates', 
-    owner: 'Mubarak Group', 
-    color: '$warning600' 
-  },
+    {
+        id: 1,
+        type: 'Investment',
+        title: 'Expanding "Only Burgers" - Rama 9 Branch',
+        owner: 'Kosit B.',
+        color: '$success600'
+    },
+    {
+        id: 2,
+        type: 'Hiring',
+        title: 'QA Automation Engineer (Playwright)',
+        owner: 'Halal Tech Co.',
+        color: '$info600'
+    },
+    {
+        id: 3,
+        type: 'Partnership',
+        title: 'Marketing Partner for Organic Dates',
+        owner: 'Mubarak Group',
+        color: '$warning600'
+    },
 ];
-const fetchUserRole = async()=>{
-    const {data:{user}} = await supabase.auth.getUser()
-    if (!user) return null;
-    const {data,error} = await supabase.from('profiles').select('is_investor, is_jobseeker, is_entrepreneur').eq('id', user.id)
-    .single();
-    if(error){
-        console.error(error)
-        return null
-    }
-    return data
-}
-export default function DashboardScreen(){
-    const [role,setRole] = useState<string|null|object>(null)
+
+export default function DashboardScreen() {
+    const [role, setRole] = useState<UserRole | null>(null)
+    const [dataByRole, setDataByRole] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
     const router = useRouter()
-    useEffect(()=>{
-        const getUserRole = async()=>{
-            const userRole =await fetchUserRole()
-        setRole(userRole)
+    useEffect(() => {
+        const loadAllData = async () => {
+            const userRole = await fetchUserRole()
+            setRole(userRole)
+            const dataRole = await fetchContentByRole(userRole)
+            setDataByRole(dataRole)
+            setLoading(false)
         }
-        getUserRole()
-    },[])
-    return(
+        loadAllData()
+    }, [])
+    return (
         <Box flex={1} bg="$secondary50">
             <Box p='$6' bg="$white" borderBottomWidth={1} borderBottomColor="$secondary200">
                 <HStack justifyContent="space-between" alignItems="center">
                     <VStack>
                         <Heading size="xl" color="$success700">Unit313</Heading>
-                        <Text size="sm">Muslim Connected</Text>
+                        <HStack space="xs">
+                            {role?.is_investor && <Badge action="success" size="sm"><BadgeText>Investor</BadgeText></Badge>}
+                            {role?.is_jobseeker && <Badge action="info" size="sm"><BadgeText>Job Seeker</BadgeText></Badge>}
+                            {role?.is_entrepreneur && <Badge action="warning" size="sm"><BadgeText>Entrepreneur</BadgeText></Badge>}
+                        </HStack>
                     </VStack>
                     <Avatar bgColor="$success500" size="md" borderRadius='$full'>
                         <AvatarFallbackText>KB</AvatarFallbackText>
@@ -63,27 +64,45 @@ export default function DashboardScreen(){
             </Box>
             <ScrollView>
                 <VStack p='$4' space="md">
-                    {POSTS.map((post)=>(
-                        <Box key={post.id} p='$5' bg="$white" borderRadius='$xl' softShadow="2">
-                            <VStack space="sm">
-                                <HStack justifyContent="space-between" alignItems="center">
-                                    <Badge size="md" variant="outline" borderRadius='$full' action="info" borderColor={post.color}>
-                                      <BadgeText color={post.color}>{post.type}</BadgeText>  
-                                    </Badge>
-                                    <Text size="xs" color="$textLight500">{post.owner}</Text>
-                                </HStack>
-                                <Heading size="md" mt='$2' color='$secondary900'>
-                                    {post.title}
-                                </Heading>
-                                <Text size="sm" color="$textLight600" numberOfLines={2}>
-                                     Information of Opportunity for muslim invester...
-                                </Text>
-                                <Button mt='$4' size="sm" variant="solid" action="primary" bg="$success600" onPress={()=>router.push('/(tabs)/postDetails'as any )}>
-                                    <ButtonText>Check Details</ButtonText>
-                                </Button>
+                    {loading ? (
+                        <Center h="$40">
+                            <VStack space="md" alignItems="center">
+                                <Spinner size="large" color="$success600" />
+                                <Text size="sm" color="$textLight500">Loading Data...</Text>
                             </VStack>
+                        </Center>
+                    ) : dataByRole.length > 0 ? (
+                        dataByRole.map((data) => (
+                            <Box key={data.id} p='$5' bg="$white" borderRadius='$xl' softShadow="2">
+                                <VStack space="sm">
+                                    <HStack justifyContent="space-between" alignItems="center">
+                                        <Badge size="md" variant="outline" borderRadius='$full' action="info">
+                                            <BadgeText>{data.category}</BadgeText>
+                                        </Badge>
+                                        <Text size="xs" color="$textLight500">{data.profiles?.full_name}</Text>
+                                    </HStack>
+                                    <Heading size="md" mt='$2' color='$secondary900'>
+                                        {data.title}
+                                    </Heading>
+                                    <Text size="sm" color="$textLight600" numberOfLines={2}>
+                                        {data.content}
+                                    </Text>
+                                    <Button mt='$4' size="sm" variant="solid" action="primary" bg="$success600" onPress={() => router.push({
+                                        pathname: '/(tabs)/postDetails',
+                                        params: { id: data.id }
+                                    })}>
+                                        <ButtonText>Check Details</ButtonText>
+                                    </Button>
+
+                                </VStack>
+                            </Box>
+                        ))
+                    ) : (
+                        //if no data
+                        <Box py="$20" alignItems="center">
+                            <Text color="$textLight500">No posts found for your role.</Text>
                         </Box>
-                    ))}
+                    )}
                 </VStack>
             </ScrollView>
         </Box>
