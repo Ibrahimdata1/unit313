@@ -1,6 +1,7 @@
+import { ROLE_OPTIONS } from "@/constants/roleOptions";
 import { supabase } from "@/lib/supabase";
 import { UserRole } from "@/types/database";
-import { showToast } from "@/utils/showToast";
+import { useShowToast } from "@/utils/useShowToast";
 import {
     Box,
     Button,
@@ -14,13 +15,9 @@ import {
 import { useRouter } from "expo-router";
 import { useState } from "react";
 
-const ROLE_OPTIONS = [
-  { id: "is_jobseeker", title: "Job Seeker", icon: "💼" },
-  { id: "is_investor", title: "Investor", icon: "💰" },
-  { id: "is_entrepreneur", title: "Entrepreneur", icon: "🚀" },
-];
 export default function RoleSelection() {
   const router = useRouter();
+  const { showToast } = useShowToast();
   const [selectedRole, setSelectedRole] = useState<UserRole>({
     is_jobseeker: false,
     is_investor: false,
@@ -75,7 +72,7 @@ export default function RoleSelection() {
           "top",
           "accent",
         );
-      router.replace("/(tabs)/dashboard");
+      router.push("/(tabs)/dashboard");
     } catch (error) {
       showToast(
         "เกิดข้อผิดพลาด",

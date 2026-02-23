@@ -1,16 +1,10 @@
 import { supabase } from "@/lib/supabase";
-import { showToast } from "@/utils/showToast";
+import { useShowToast } from "@/utils/useShowToast";
 import {
     Box,
     Button,
     ButtonText,
     Center,
-    Checkbox,
-    CheckboxGroup,
-    CheckboxIcon,
-    CheckboxIndicator,
-    CheckboxLabel,
-    CheckIcon,
     FormControl,
     Heading,
     Input,
@@ -18,10 +12,10 @@ import {
     InputIcon,
     InputSlot,
     Text,
-    VStack
+    VStack,
 } from "@gluestack-ui/themed";
 import { useRouter } from "expo-router";
-import { Lock, Mail } from "lucide-react-native";
+import { Lock, Mail, User } from "lucide-react-native";
 import { useState } from "react";
 import { Keyboard, TouchableWithoutFeedback } from "react-native";
 
@@ -30,10 +24,10 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [phone, setPhone] = useState<Number>();
+  const [phone, setPhone] = useState<string>();
   const [loading, setLoading] = useState(false);
-  const [roles, setRoles] = useState(["investor", "enterprenuer", "jobseeker"]);
   const router = useRouter();
+  const { showToast } = useShowToast();
   const handleRegister = async () => {
     if (password !== confirmPassword) {
       showToast(
@@ -71,9 +65,6 @@ export default function RegisterScreen() {
           {
             id: user.id,
             full_name: name,
-            is_investor: roles.includes("investor"),
-            is_jobseeker: roles.includes("jobseeker"),
-            is_entrepreneur: roles.includes("entrepreneur"),
           },
         ]);
       if (errSaveProfiles) {
@@ -163,7 +154,7 @@ export default function RegisterScreen() {
               <FormControl>
                 <Input variant="outline" size="md">
                   <InputSlot pl="$3">
-                    <InputIcon as={name} color="$text500" />
+                    <InputIcon as={User} color="$text500" />
                   </InputSlot>
                   <InputField
                     placeholder="Full Name"
@@ -172,38 +163,6 @@ export default function RegisterScreen() {
                   />
                 </Input>
               </FormControl>
-              <VStack space="sm" mt="$2">
-                <Text size="sm" color="$text500" fontWeight="$bold">
-                  I am a:
-                </Text>
-                <CheckboxGroup value={roles} onChange={setRoles}>
-                  <VStack space="md">
-                    {/* 1. Investor */}
-                    <Checkbox value="investor" size="md">
-                      <CheckboxIndicator>
-                        <CheckboxIcon as={CheckIcon} />
-                      </CheckboxIndicator>
-                      <CheckboxLabel ml="$2">Investor</CheckboxLabel>
-                    </Checkbox>
-
-                    {/* 2. Job Seeker */}
-                    <Checkbox value="jobseeker" size="md">
-                      <CheckboxIndicator>
-                        <CheckboxIcon as={CheckIcon} />
-                      </CheckboxIndicator>
-                      <CheckboxLabel ml="$2">Job Seeker</CheckboxLabel>
-                    </Checkbox>
-
-                    {/* 3. Entrepreneur */}
-                    <Checkbox value="entrepreneur" size="md">
-                      <CheckboxIndicator>
-                        <CheckboxIcon as={CheckIcon} />
-                      </CheckboxIndicator>
-                      <CheckboxLabel ml="$2">Entrepreneur</CheckboxLabel>
-                    </Checkbox>
-                  </VStack>
-                </CheckboxGroup>
-              </VStack>
             </VStack>
             <Button
               variant="solid"
