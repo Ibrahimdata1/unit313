@@ -58,20 +58,26 @@ export default function RoleSelection() {
         );
         return;
       }
-      const { error } = await supabase.from("profiles").upsert({
-        id: user.id,
-        is_investor: selectedRole.is_investor,
-        is_entrepreneur: selectedRole.is_entrepreneur,
-        is_jobseeker: selectedRole.is_jobseeker,
-      });
-      if (error)
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          id: user.id,
+          is_investor: selectedRole.is_investor,
+          is_entrepreneur: selectedRole.is_entrepreneur,
+          is_jobseeker: selectedRole.is_jobseeker,
+        })
+        .eq("id", user.id);
+      if (error) {
         showToast(
-          "please selected any role",
-          "must selected atleast one role",
+          "Error when saving your role",
+          "Please contact customer service",
           "error",
           "top",
           "accent",
         );
+        console.log("error saving role user", error.message);
+        return;
+      }
       router.push("/(tabs)/dashboard");
     } catch (error) {
       showToast(
