@@ -1,0 +1,1 @@
+ALTER TABLE profiles DROP CONSTRAINT at_least_one_role;

@@ -18,6 +18,7 @@ import { useRouter } from "expo-router";
 import { Lock, Mail, User } from "lucide-react-native";
 import { useState } from "react";
 import { Keyboard, TouchableWithoutFeedback } from "react-native";
+import { z } from "zod";
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState("");
@@ -28,7 +29,23 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { showToast } = useShowToast();
+  const registerSchema = z.object({
+    email: z
+      .string()
+      .min(1, { message: "Please type email" })
+      .email({ message: "Invalid Email Format" }),
+    password: z
+      .string()
+      .min(6, { message: "Password must be atleast 6 charactors" }),
+    name: z.string().min(1, { message: "Please type your name" }),
+  });
   const handleRegister = async () => {
+    const result = registerSchema.safeParse({ email, password, name });
+    if (!result.success) {
+      const errorMessage = result.error.issues[0].message;
+      showToast("Validation Error", errorMessage, "error", "top", "accent");
+      return;
+    }
     if (password !== confirmPassword) {
       showToast(
         "Password do not match!",
@@ -49,12 +66,13 @@ export default function RegisterScreen() {
     });
     if (authError) {
       showToast(
-        "Registeration Failed!",
-        authError.message,
+        "SignUp Failed!",
+        "Please try again or contact authority",
         "error",
         "top",
         "accent",
       );
+      console.log("Registeration Failed", authError.message);
       setLoading(false);
       return;
     }
@@ -70,16 +88,17 @@ export default function RegisterScreen() {
       if (errSaveProfiles) {
         showToast(
           "Registeration Failed!",
-          errSaveProfiles.message,
+          "Please try again or contact authority",
           "error",
           "top",
           "accent",
         );
+        console.log("Registeration Failed!", errSaveProfiles.message);
       } else {
         showToast(
           "Registeration Success!",
           "Check your email for the confirmation link",
-          "error",
+          "success",
           "top",
           "accent",
         );
@@ -120,6 +139,7 @@ export default function RegisterScreen() {
                     value={email}
                     onChangeText={setEmail}
                     autoCapitalize="none"
+                    keyboardType="email-address"
                   />
                 </Input>
               </FormControl>

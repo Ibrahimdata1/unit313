@@ -75,8 +75,8 @@ export default function RoleSelection() {
       router.push("/(tabs)/dashboard");
     } catch (error) {
       showToast(
-        "เกิดข้อผิดพลาด",
-        "ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง",
+        "something wrong",
+        "cannot save please try again",
         "error",
         "top",
         "accent",
