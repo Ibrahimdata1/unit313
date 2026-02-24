@@ -1,6 +1,6 @@
 import { fetchContentByRole } from "@/services/fetchContentRole";
 import { fetchUserRole } from "@/services/fetchUserRole";
-import { UserRole } from "@/types/database";
+import { UserRole } from "@/types/databaseUserRole";
 import {
     Avatar,
     AvatarFallbackText,

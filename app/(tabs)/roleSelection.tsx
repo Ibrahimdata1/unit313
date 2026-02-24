@@ -1,6 +1,6 @@
 import { ROLE_OPTIONS } from "@/constants/roleOptions";
 import { supabase } from "@/lib/supabase";
-import { UserRole } from "@/types/database";
+import { UserRole } from "@/types/databaseUserRole";
 import { useShowToast } from "@/utils/useShowToast";
 import {
     Box,
