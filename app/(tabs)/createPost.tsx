@@ -75,17 +75,44 @@ export default function CreatePostScreen() {
   const uploadImages = async (postId: string) => {
     const uploadPromises = images.map(async (uri, index) => {
       const fileName = `${postId}/${index}.jpg`;
+      try {
+        const response = await fetch(uri);
+        const imgBlob = await response.blob();
 
-      const response = await fetch(uri);
-      const imgBlob = await response.blob();
-
-      return supabase.storage.from("post-images").upload(fileName, imgBlob, {
-        contentType: "image/jpeg",
-        upsert: true,
-      });
+        const { data, error: uploadError } = await supabase.storage
+          .from("post-images")
+          .upload(fileName, imgBlob, {
+            contentType: "image/jpeg",
+            upsert: true,
+          });
+        if (uploadError) {
+          showToast(
+            "Upload error",
+            "Please contact customer service",
+            "error",
+            "top",
+            "accent",
+          );
+          throw uploadError;
+        }
+        return data;
+      } catch (error) {
+        console.error("fetch uri uploadImages Error", error);
+        throw error;
+      }
     });
-
-    await Promise.all(uploadPromises);
+    try {
+      await Promise.all(uploadPromises);
+    } catch (error) {
+      showToast(
+        "Upload Images Failed",
+        "Please try again or contact customer service",
+        "error",
+        "top",
+        "accent",
+      );
+      throw error;
+    }
   };
   const handleSave = async () => {
     try {
