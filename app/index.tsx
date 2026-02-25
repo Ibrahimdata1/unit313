@@ -33,6 +33,6 @@ export default function indexPage() {
   if (!session) {
     return <Redirect href="/(auth)/login" />;
   } else {
-    return <Redirect href="/(tabs)/dashboard" />;
+    return <Redirect href="/(tabs)" />;
   }
 }

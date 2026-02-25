@@ -78,7 +78,7 @@ export default function RoleSelection() {
         console.log("error saving role user", error.message);
         return;
       }
-      router.push("/(tabs)/dashboard");
+      router.push("/(tabs)");
     } catch (error) {
       showToast(
         "something wrong",

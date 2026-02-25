@@ -16,6 +16,7 @@ import {
     Text,
     VStack,
 } from "@gluestack-ui/themed";
+import { router } from "expo-router";
 import { TrashIcon } from "lucide-react-native";
 import { useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -69,7 +70,7 @@ export default function CreatePostScreen() {
           title: title,
           content: content,
           category: category,
-          mileStones: mileStones,
+          milestones: mileStones,
           status: "open",
         },
       ]);
@@ -82,6 +83,7 @@ export default function CreatePostScreen() {
           "accent",
         );
         console.error("error insert posts db", error.message);
+        return;
       } else {
         showToast(
           "Create Post Success",
@@ -90,6 +92,7 @@ export default function CreatePostScreen() {
           "top",
           "accent",
         );
+        router.push("/(tabs)");
       }
     } catch (error) {
       showToast(
@@ -132,7 +135,7 @@ export default function CreatePostScreen() {
           {/* Category Selection */}
           <VStack space="xs">
             <Text size="sm" fontWeight="$bold">
-              I am an...
+              Category
             </Text>
             <HStack space="sm">
               {CATEGORY_OPTIONS.map((item) => (
@@ -143,7 +146,9 @@ export default function CreatePostScreen() {
                   onPress={() => setCategory(item)}
                   flex={1}
                 >
-                  <ButtonText>{item}</ButtonText>
+                  <ButtonText size="xs" textAlign="center">
+                    {item}
+                  </ButtonText>
                 </Button>
               ))}
             </HStack>
@@ -178,14 +183,14 @@ export default function CreatePostScreen() {
                   <InputField
                     placeholder="E.g. Get Halal Certification"
                     value={item.step}
-                    onChangeText={(text) => updateMileStone(text, index)} // ใช้ฟังก์ชันที่คุณเขียน
+                    onChangeText={(text) => updateMileStone(text, index)}
                   />
                 </Input>
                 <Button
                   size="sm"
                   action="negative"
                   variant="link"
-                  onPress={() => removeMileStone(index)} // ใช้ฟังก์ชันที่คุณเขียน
+                  onPress={() => removeMileStone(index)}
                   isDisabled={mileStones.length === 1}
                 >
                   <Icon as={TrashIcon} color="$red500" />
