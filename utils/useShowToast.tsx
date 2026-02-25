@@ -12,7 +12,7 @@ export const useShowToast = () => {
   const showToast = (
     title: string,
     desc: string,
-    action: "error" | "success",
+    action: "error" | "success" | "warning",
     direction: "top" | "bottom",
     variant: "accent",
   ) => {

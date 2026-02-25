@@ -1,3 +1,4 @@
+import { supabase } from "@/lib/supabase";
 import { fetchContentByRole } from "@/services/fetchContentRole";
 import { fetchUserRole } from "@/services/fetchUserRole";
 import { UserRole } from "@/types/databaseUserRole";
@@ -15,6 +16,7 @@ import {
   Heading,
   HStack,
   Icon,
+  Image,
   RefreshControl,
   ScrollView,
   Spinner,
@@ -126,49 +128,69 @@ export default function DashboardScreen() {
                 </VStack>
               </Center>
             ) : dataByRole.length > 0 ? (
-              dataByRole.map((data) => (
-                <Box
-                  key={data.id}
-                  p="$5"
-                  bg="$white"
-                  borderRadius="$xl"
-                  softShadow="2"
-                >
-                  <VStack space="sm">
-                    <HStack justifyContent="space-between" alignItems="center">
-                      <Badge
-                        size="md"
-                        variant="outline"
-                        borderRadius="$full"
-                        action="info"
+              dataByRole.map((data) => {
+                const {
+                  data: { publicUrl },
+                } = supabase.storage
+                  .from("post-images")
+                  .getPublicUrl(`${data.id}/0.jpg`);
+                return (
+                  <Box
+                    key={data.id}
+                    p="$5"
+                    bg="$white"
+                    borderRadius="$xl"
+                    softShadow="2"
+                    mb="$4"
+                    overflow="hidden"
+                  >
+                    <Box h={180} w="$full">
+                      <Image
+                        source={{ uri: publicUrl }}
+                        alt="Post Image"
+                        size="full"
+                        resizeMode="cover"
+                      />
+                    </Box>
+                    <VStack space="sm">
+                      <HStack
+                        justifyContent="space-between"
+                        alignItems="center"
                       >
-                        <BadgeText>{data.category}</BadgeText>
-                      </Badge>
-                      <Text size="xs" color="$textLight500">
-                        {data.profiles?.full_name}
-                      </Text>
-                    </HStack>
-                    <Heading size="md" mt="$2" color="$secondary900">
-                      {data.title}
-                    </Heading>
-                    <Button
-                      mt="$4"
-                      size="sm"
-                      variant="solid"
-                      action="primary"
-                      bg="$success600"
-                      onPress={() =>
-                        router.push({
-                          pathname: "/(tabs)/postDetails",
-                          params: { id: data.id },
-                        })
-                      }
-                    >
-                      <ButtonText>Check Details</ButtonText>
-                    </Button>
-                  </VStack>
-                </Box>
-              ))
+                        <Badge
+                          size="md"
+                          variant="outline"
+                          borderRadius="$full"
+                          action="info"
+                        >
+                          <BadgeText>{data.category}</BadgeText>
+                        </Badge>
+                        <Text size="xs" color="$textLight500">
+                          {data.profiles?.full_name}
+                        </Text>
+                      </HStack>
+                      <Heading size="md" mt="$2" color="$secondary900">
+                        {data.title}
+                      </Heading>
+                      <Button
+                        mt="$4"
+                        size="sm"
+                        variant="solid"
+                        action="primary"
+                        bg="$success600"
+                        onPress={() =>
+                          router.push({
+                            pathname: "/(tabs)/postDetails",
+                            params: { id: data.id },
+                          })
+                        }
+                      >
+                        <ButtonText>Check Details</ButtonText>
+                      </Button>
+                    </VStack>
+                  </Box>
+                );
+              })
             ) : (
               //if no data
               <Box py="$20" alignItems="center">

@@ -3,19 +3,21 @@ import { CATEGORY_OPTIONS, CategoryPost } from "@/types/categoryPost";
 import { Milestone } from "@/types/postMilestone";
 import { useShowToast } from "@/utils/useShowToast";
 import {
-    AddIcon,
-    Box,
-    Button,
-    ButtonText,
-    Heading,
-    HStack,
-    Icon,
-    Input,
-    InputField,
-    ScrollView,
-    Text,
-    VStack,
+  AddIcon,
+  Box,
+  Button,
+  ButtonText,
+  Heading,
+  HStack,
+  Icon,
+  Image,
+  Input,
+  InputField,
+  ScrollView,
+  Text,
+  VStack,
 } from "@gluestack-ui/themed";
+import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { TrashIcon } from "lucide-react-native";
 import { useState } from "react";
@@ -32,6 +34,30 @@ export default function CreatePostScreen() {
   ]);
   const [mileStoneInput, setMileStoneInput] = useState<string>("");
   const [category, setCategory] = useState<CategoryPost>("Job Seeking");
+  const [images, setImages] = useState<string[]>([]);
+  const pickImage = async () => {
+    if (images.length >= 5) {
+      showToast(
+        "Limit reached",
+        "You can upload up to 5 images",
+        "warning",
+        "top",
+        "accent",
+      );
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsMultipleSelection: true,
+      selectionLimit: 5 - images.length,
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      const selectedUris = result.assets.map((asset) => asset.uri);
+      setImages((prev) => [...prev, ...selectedUris]);
+    }
+  };
   const addMileStone = () => {
     setMileStones((prev) => [
       ...prev,
@@ -45,6 +71,21 @@ export default function CreatePostScreen() {
     setMileStones((prev) =>
       prev.map((item, i) => (i === index ? { ...item, step: text } : item)),
     );
+  };
+  const uploadImages = async (postId: string) => {
+    const uploadPromises = images.map(async (uri, index) => {
+      const fileName = `${postId}/${index}.jpg`;
+
+      const response = await fetch(uri);
+      const imgBlob = await response.blob();
+
+      return supabase.storage.from("post-images").upload(fileName, imgBlob, {
+        contentType: "image/jpeg",
+        upsert: true,
+      });
+    });
+
+    await Promise.all(uploadPromises);
   };
   const handleSave = async () => {
     try {
@@ -64,16 +105,20 @@ export default function CreatePostScreen() {
         console.log("handleSave getUser failed", authError?.message);
         return;
       }
-      const { error } = await supabase.from("posts").insert([
-        {
-          author_id: user.id,
-          title: title,
-          content: content,
-          category: category,
-          milestones: mileStones,
-          status: "open",
-        },
-      ]);
+      const { data, error } = await supabase
+        .from("posts")
+        .insert([
+          {
+            author_id: user.id,
+            title: title,
+            content: content,
+            category: category,
+            milestones: mileStones,
+            status: "open",
+          },
+        ])
+        .select()
+        .single();
       if (error) {
         showToast(
           "Create Post Failed",
@@ -85,6 +130,7 @@ export default function CreatePostScreen() {
         console.error("error insert posts db", error.message);
         return;
       } else {
+        await uploadImages(data.id);
         showToast(
           "Create Post Success",
           "Waiting for updated",
@@ -222,6 +268,56 @@ export default function CreatePostScreen() {
             </VStack>
           </VStack>
 
+          <VStack space="md" mt="$4">
+            <Heading size="sm">Photos ({images.length}/5)</Heading>
+
+            <HStack space="sm" flexWrap="wrap">
+              {images.map((uri, index) => (
+                <Box
+                  key={index}
+                  w={80}
+                  h={80}
+                  position="relative"
+                  borderRadius="$sm"
+                  overflow="hidden"
+                >
+                  <Image source={{ uri }} alt="preview image" size="full" />
+                  <Button
+                    size="xs"
+                    action="negative"
+                    position="absolute"
+                    top={-5}
+                    right={-5}
+                    borderRadius="$full"
+                    onPress={() =>
+                      setImages(images.filter((_, i) => i !== index))
+                    }
+                    w={20}
+                    h={20}
+                    p={0}
+                  >
+                    <Icon as={TrashIcon} size="xs" color="$white" />
+                  </Button>
+                </Box>
+              ))}
+
+              {images.length < 5 && (
+                <Button
+                  onPress={pickImage}
+                  variant="outline"
+                  action="secondary"
+                  w={80}
+                  h={80}
+                  borderStyle="dashed"
+                >
+                  <VStack alignItems="center">
+                    <Icon as={AddIcon} />
+                    <Text size="xs">Add</Text>
+                  </VStack>
+                </Button>
+              )}
+            </HStack>
+          </VStack>
           {/* Submit Button */}
           <Button
             size="lg"
