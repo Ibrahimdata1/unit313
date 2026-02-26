@@ -162,7 +162,6 @@ export default function CreatePostScreen() {
         return;
       } else {
         await uploadImages(data.id);
-        console.log("data id createPost", data.id);
         showToast(
           "Create Post Success",
           "Waiting for updated",
