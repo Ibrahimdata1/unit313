@@ -179,10 +179,9 @@ export default function DashboardScreen() {
                         action="primary"
                         bg="$success600"
                         onPress={() =>
-                          router.push({
-                            pathname: "/(tabs)/postDetails",
-                            params: { id: data.id },
-                          })
+                          router.push(
+                            `/(tabs)/postDetails?id=${data.id}` as any,
+                          )
                         }
                       >
                         <ButtonText>Check Details</ButtonText>

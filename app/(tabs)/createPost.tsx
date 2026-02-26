@@ -18,6 +18,7 @@ import {
   VStack,
 } from "@gluestack-ui/themed";
 import { decode } from "base64-arraybuffer";
+import * as crypto from "expo-crypto";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
