@@ -101,7 +101,7 @@ export default function DashboardScreen() {
             size="md"
             variant="outline"
             action="primary"
-            onPress={() => router.push("/(tabs)/createPost")}
+            onPress={() => router.push("/(tabs)/createPost" as any)}
           >
             <ButtonText>Create New Post</ButtonText>
             <Icon as={AddIcon} ml="$2" />
