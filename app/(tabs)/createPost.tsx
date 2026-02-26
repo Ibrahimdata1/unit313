@@ -17,6 +17,8 @@ import {
   Text,
   VStack,
 } from "@gluestack-ui/themed";
+import { decode } from "base64-arraybuffer";
+import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { TrashIcon } from "lucide-react-native";
@@ -76,12 +78,14 @@ export default function CreatePostScreen() {
     const uploadPromises = images.map(async (uri, index) => {
       const fileName = `${postId}/${index}.jpg`;
       try {
-        const response = await fetch(uri);
-        const imgBlob = await response.blob();
+        const bast64 = await FileSystem.readAsStringAsync(uri, {
+          encoding: "base64",
+        });
+        const arrayBuffer = decode(bast64);
 
         const { data, error: uploadError } = await supabase.storage
           .from("post-images")
-          .upload(fileName, imgBlob, {
+          .upload(fileName, arrayBuffer, {
             contentType: "image/jpeg",
             upsert: true,
           });
@@ -158,6 +162,7 @@ export default function CreatePostScreen() {
         return;
       } else {
         await uploadImages(data.id);
+        console.log("data id createPost", data.id);
         showToast(
           "Create Post Success",
           "Waiting for updated",

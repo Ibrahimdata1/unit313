@@ -134,6 +134,7 @@ export default function DashboardScreen() {
                 } = supabase.storage
                   .from("post-images")
                   .getPublicUrl(`${data.id}/0.jpg`);
+                console.log("data.id", data.id);
                 return (
                   <Box
                     key={data.id}
