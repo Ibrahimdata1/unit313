@@ -99,14 +99,18 @@ export default function CreatePostScreen() {
           );
           throw uploadError;
         }
-        return data;
+        const { data: urlData } = supabase.storage
+          .from("post-images")
+          .getPublicUrl(fileName);
+        return urlData.publicUrl;
       } catch (error) {
         console.error("fetch uri uploadImages Error", error);
         throw error;
       }
     });
     try {
-      await Promise.all(uploadPromises);
+      const allUrl = await Promise.all(uploadPromises);
+      return allUrl;
     } catch (error) {
       showToast(
         "Upload Images Failed",
@@ -136,15 +140,19 @@ export default function CreatePostScreen() {
         console.log("handleSave getUser failed", authError?.message);
         return;
       }
+      const newPostId = crypto.randomUUID();
+      const imageUrls = await uploadImages(newPostId);
       const { data, error } = await supabase
         .from("posts")
-        .insert([
+        .upsert([
           {
+            id: newPostId,
             author_id: user.id,
             title: title,
             content: content,
             category: category,
             milestones: mileStones,
+            image_url: imageUrls,
             status: "open",
           },
         ])
@@ -161,7 +169,6 @@ export default function CreatePostScreen() {
         console.error("error insert posts db", error.message);
         return;
       } else {
-        await uploadImages(data.id);
         showToast(
           "Create Post Success",
           "Waiting for updated",

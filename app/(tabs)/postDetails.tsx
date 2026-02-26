@@ -1,11 +1,28 @@
 import { supabase } from "@/lib/supabase";
 import { useShowToast } from "@/utils/useShowToast";
+import {
+    Box,
+    Button,
+    ButtonText,
+    ChevronLeftIcon,
+    Divider,
+    Heading,
+    HStack,
+    Icon,
+    Image,
+    Pressable,
+    ScrollView,
+    Spinner,
+    Text,
+    TrashIcon,
+    VStack,
+} from "@gluestack-ui/themed";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 export default function PostDetailsScreen() {
   const { id } = useLocalSearchParams();
   const { showToast } = useShowToast();
-  const [post, setPost] = useState();
+  const [post, setPost] = useState<any>(null);
   const [isAuthor, setIsAuthor] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const fetchPostDetails = async () => {
@@ -55,13 +72,6 @@ export default function PostDetailsScreen() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        showToast(
-          "User not found!",
-          "Please try again",
-          "error",
-          "top",
-          "accent",
-        );
         return;
       }
       const { error } = await supabase
@@ -96,6 +106,129 @@ export default function PostDetailsScreen() {
         "top",
         "accent",
       );
+    } finally {
+      setLoading(false);
     }
   };
+  if (loading) {
+    return (
+      <Box flex={1} justifyContent="center" alignItems="center">
+        <Spinner size="large" />
+      </Box>
+    );
+  }
+  if (!post) {
+    return <Text>404 Post is not here</Text>;
+  }
+  return (
+    <Box flex={1} bg="$white">
+      <HStack
+        p="$4"
+        alignItems="center"
+        borderBottomWidth={1}
+        borderBottomColor="$borderLight100"
+      >
+        <Pressable onPress={() => router.back()}>
+          <Icon as={ChevronLeftIcon} size="xl" color="$black" />
+        </Pressable>
+        <Heading size="md" ml="$4">
+          post details
+        </Heading>
+      </HStack>
+
+      <ScrollView contentContainerStyle={{ paddingBottom: 50 }}>
+        {post.image_url && post.image_url.length > 0 ? (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} p="$4">
+            <HStack space="md">
+              {post.image_url.map((url: string, index: number) => (
+                <Image
+                  key={index}
+                  source={{ uri: url }}
+                  alt={`post-image-${index}`}
+                  w={300}
+                  h={300}
+                  borderRadius={12}
+                  resizeMode="cover"
+                />
+              ))}
+            </HStack>
+          </ScrollView>
+        ) : (
+          <Box
+            h={200}
+            bg="$secondary100"
+            justifyContent="center"
+            alignItems="center"
+            m="$4"
+            borderRadius="$lg"
+          >
+            <Text color="$secondary500">Pictures not exists</Text>
+          </Box>
+        )}
+
+        <VStack p="$5" space="lg">
+          <Box
+            bg="$primary100"
+            alignSelf="flex-start"
+            px="$3"
+            py="$1"
+            borderRadius="$full"
+          >
+            <Text size="xs" color="$primary700" fontWeight="$bold">
+              {post.category}
+            </Text>
+          </Box>
+
+          <Heading size="xl">{post.title}</Heading>
+          <Text size="xs" color="$textLight500">
+            Posted on: {new Date(post.created_at).toLocaleDateString()}
+          </Text>
+          <Text size="md" color="$text700" lineHeight="$xl">
+            {post.content}
+          </Text>
+
+          <Divider my="$4" />
+
+          {/* Milestones Section */}
+          <Heading size="md" mb="$2">
+            Our Roadmap(Milestones)
+          </Heading>
+          <VStack space="md">
+            {post.milestones?.map((item: any, index: number) => (
+              <HStack key={index} space="sm" alignItems="flex-start">
+                <Box
+                  w={24}
+                  h={24}
+                  borderRadius="$full"
+                  bg={item.is_done ? "$success500" : "$secondary200"}
+                  justifyContent="center"
+                  alignItems="center"
+                >
+                  <Text size="xs" color="$white">
+                    {index + 1}
+                  </Text>
+                </Box>
+                <Text flex={1} size="md" strikeThrough={item.is_done}>
+                  {item.step}
+                </Text>
+              </HStack>
+            ))}
+          </VStack>
+
+          {isAuthor && (
+            <Button
+              mt="$10"
+              action="negative"
+              variant="outline"
+              onPress={handleDelete}
+              borderColor="$red500"
+            >
+              <Icon as={TrashIcon} color="$red500" mr="$2" size="sm" />
+              <ButtonText color="$red500">ลบโพสต์นี้</ButtonText>
+            </Button>
+          )}
+        </VStack>
+      </ScrollView>
+    </Box>
+  );
 }
