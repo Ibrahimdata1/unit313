@@ -17,6 +17,7 @@ import {
   HStack,
   Icon,
   Image,
+  Pressable,
   RefreshControl,
   ScrollView,
   Spinner,
@@ -92,9 +93,11 @@ export default function DashboardScreen() {
                 )}
               </HStack>
             </VStack>
-            <Avatar bgColor="$success500" size="md" borderRadius="$full">
-              <AvatarFallbackText>KB</AvatarFallbackText>
-            </Avatar>
+            <Pressable onPress={() => router.push("/profileScreen")}>
+              <Avatar bgColor="$success500" size="md" borderRadius="$full">
+                <AvatarFallbackText>KB</AvatarFallbackText>
+              </Avatar>
+            </Pressable>
           </HStack>
           <Button
             mt="$4"
