@@ -120,6 +120,77 @@ export default function ProfileScreen() {
     };
     fetchData();
   }, []);
+  const handleUploadBusinessPlan = async () => {
+    try {
+      setLoading(true);
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "application/pdf",
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled) {
+        setLoading(false);
+        return;
+      }
+
+      const fileUri = result.assets[0].uri;
+      const base64 = await FileSystem.readAsStringAsync(fileUri, {
+        encoding: "base64",
+      });
+      const arrayBuffer = decode(base64);
+
+      const fileName = `business-plan-${profile.id}-${Date.now()}.pdf`;
+
+      const { error: UploadError } = await supabase.storage
+        .from("documents")
+        .upload(fileName, arrayBuffer, {
+          contentType: "application/pdf",
+          upsert: true,
+        });
+
+      if (UploadError) throw UploadError;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("documents").getPublicUrl(fileName);
+
+      const { error: dbError } = await supabase.from("entrepreneur").upsert({
+        id: profile.id,
+        business_plan_url: publicUrl,
+      });
+
+      if (dbError) {
+        showToast(
+          "Upload Failed!",
+          "Please try again or contact admin",
+          "error",
+          "top",
+          "accent",
+        );
+        throw dbError;
+      }
+
+      showToast(
+        "Success",
+        "Business Plan uploaded!",
+        "success",
+        "top",
+        "accent",
+      );
+      setProfile((prevProfile: any) => ({
+        ...prevProfile,
+        entrepreneur: {
+          ...prevProfile?.entrepreneur,
+          business_plan_url: publicUrl,
+        },
+      }));
+    } catch (error) {
+      console.error("Upload error:", error);
+      showToast("Upload Failed", "Please try again", "error", "top", "accent");
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleUploadResume = async () => {
     try {
       setLoading(true);
@@ -177,6 +248,13 @@ export default function ProfileScreen() {
         "top",
         "accent",
       );
+      setProfile((prevProfile: any) => ({
+        ...prevProfile,
+        jobseeker: {
+          ...prevProfile?.jobseeker,
+          resume_url: publicUrl,
+        },
+      }));
     } catch (error) {
       console.error("Upload error:", error);
       showToast(
@@ -242,7 +320,6 @@ export default function ProfileScreen() {
 
           <Heading size="lg">{profile.full_name || "Unknown Name"}</Heading>
 
-          {/* แสดง Badges ตาม Role ที่ผู้ใช้มี */}
           <HStack space="sm" flexWrap="wrap" justifyContent="center">
             {role?.is_investor && (
               <Badge action="success" variant="solid" borderRadius="$full">
@@ -338,10 +415,7 @@ export default function ProfileScreen() {
                     variant="outline"
                     action="primary"
                     alignSelf="flex-start"
-                    onPress={() => {
-                      console.log("Pressed Upload Business Plan");
-                      //not finished building yet
-                    }}
+                    onPress={handleUploadBusinessPlan}
                   >
                     <ButtonText>Upload Document</ButtonText>
                   </Button>
