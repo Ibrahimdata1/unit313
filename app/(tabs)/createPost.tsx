@@ -79,10 +79,10 @@ export default function CreatePostScreen() {
     const uploadPromises = images.map(async (uri, index) => {
       const fileName = `${postId}/${index}.jpg`;
       try {
-        const bast64 = await FileSystem.readAsStringAsync(uri, {
+        const base64 = await FileSystem.readAsStringAsync(uri, {
           encoding: "base64",
         });
-        const arrayBuffer = decode(bast64);
+        const arrayBuffer = decode(base64);
 
         const { data, error: uploadError } = await supabase.storage
           .from("post-images")

@@ -21,6 +21,9 @@ import {
     Text,
     VStack,
 } from "@gluestack-ui/themed";
+import { decode } from "base64-arraybuffer";
+import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system/legacy";
 import { useRouter } from "expo-router";
 import {
     BriefcaseIcon,
@@ -94,7 +97,6 @@ export default function ProfileScreen() {
       throw fetchProfileError;
     }
     setProfile(data);
-    console.log("data profiles", data);
   };
   useEffect(() => {
     const fetchData = async () => {
@@ -118,6 +120,76 @@ export default function ProfileScreen() {
     };
     fetchData();
   }, []);
+  const handleUploadResume = async () => {
+    try {
+      setLoading(true);
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "application/pdf",
+        copyToCacheDirectory: true,
+      });
+      if (result.canceled) {
+        setLoading(false);
+        return;
+      }
+      const fileUri = result.assets[0].uri;
+      const base64 = await FileSystem.readAsStringAsync(fileUri, {
+        encoding: "base64",
+      });
+      const arrayBuffer = decode(base64);
+      const fileName = `resume-${profile.id}-${Date.now()}.pdf`;
+      const { error: UploadError } = await supabase.storage
+        .from("documents")
+        .upload(fileName, arrayBuffer, {
+          contentType: "application/pdf",
+          upsert: true,
+        });
+      if (UploadError) {
+        showToast(
+          "Upload Failed!",
+          "Please try again or contact admin",
+          "error",
+          "top",
+          "accent",
+        );
+        throw UploadError;
+      }
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("documents").getPublicUrl(fileName);
+      const { error: dbError } = await supabase.from("jobseeker").upsert({
+        id: profile.id,
+        resume_url: publicUrl,
+      });
+      if (dbError) {
+        showToast(
+          "Upload Failed!",
+          "Please try again or contact admin",
+          "error",
+          "top",
+          "accent",
+        );
+        throw dbError;
+      }
+      showToast(
+        "Success",
+        "Resume uploaded successfully!",
+        "success",
+        "top",
+        "accent",
+      );
+    } catch (error) {
+      console.error("Upload error:", error);
+      showToast(
+        "Upload Failed",
+        "Could not upload resume",
+        "error",
+        "top",
+        "accent",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.replace("/(auth)/login");
@@ -318,7 +390,7 @@ export default function ProfileScreen() {
                         fontWeight="$medium"
                         textDecorationLine="none"
                       >
-                        View Document
+                        View Resume
                       </LinkText>
                     </HStack>
                   </Link>
@@ -329,11 +401,9 @@ export default function ProfileScreen() {
                     variant="outline"
                     action="primary"
                     alignSelf="flex-start"
-                    onPress={() => {
-                      console.log("Pressed Upload Resume");
-                    }}
+                    onPress={handleUploadResume}
                   >
-                    <ButtonText>Upload Document</ButtonText>
+                    <ButtonText>Upload Resume</ButtonText>
                   </Button>
                 )}
               </VStack>
